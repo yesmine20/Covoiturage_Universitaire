@@ -1,29 +1,24 @@
-import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
+import { supabase } from '@/lib/supabase';
 import { router } from 'expo-router';
-
-// Données de test — à remplacer par Supabase plus tard
-const TRAJETS_TEST = [
-  {
-    id: '1',
-    depart: 'Sfax',
-    arrivee: 'Tunis',
-    date_depart: '2026-04-15 08:00',
-    places_dispo: 3,
-    prix: 15,
-    description: 'Trajet direct, climatisé',
-  },
-  {
-    id: '2',
-    depart: 'Sousse',
-    arrivee: 'Sfax',
-    date_depart: '2026-04-15 09:30',
-    places_dispo: 0,
-    prix: 10,
-    description: 'Départ devant la fac',
-  },
-];
+import { useEffect, useState } from 'react';
+import { FlatList, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function TrajetsScreen() {
+  const [trajets, setTrajets] = useState<any[]>([]);
+  const [trajetChoisi, setTrajetChoisi] = useState<any>(null);
+
+  useEffect(() => {
+    supabase.from('trajets').select('*').then(({ data }) => setTrajets(data ?? []));
+  }, []);
+
+  const allerAuFormulaire = () => {
+    setTrajetChoisi(null); // fermer le modal
+    router.push({
+      pathname: '/reservation',
+      params: { trajet: JSON.stringify(trajetChoisi) }
+    });
+  };
+
   return (
     <View style={styles.container}>
 
@@ -31,63 +26,91 @@ export default function TrajetsScreen() {
       <View style={styles.header}>
         <Text style={styles.titre}>Trajets disponibles</Text>
         <TouchableOpacity
-          style={styles.btnAjouter}
+          style={styles.button}
           onPress={() => router.push('/trajet/modal')}
         >
-          <Text style={styles.btnAjouterText}>+ Ajouter</Text>
+          <Text style={styles.buttonText}>+ Ajouter</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Liste des trajets */}
+      {/* Liste trajets */}
       <FlatList
-        data={TRAJETS_TEST}
-        keyExtractor={item => item.id}
-        contentContainerStyle={{ paddingBottom: 30 }}
+        data={trajets}
+        keyExtractor={(item) => item.id}
+        style={{ marginTop: 20 }}
         renderItem={({ item }) => (
-          <View style={styles.card}>
-
-            {/* Infos trajet */}
+          <View style={styles.carte}>
             <Text style={styles.trajetTitre}>
               {item.depart} → {item.arrivee}
             </Text>
-            <Text style={styles.trajetInfo}>
-              Date : {item.date_depart}
-            </Text>
-            <Text style={styles.trajetInfo}>
-              Places disponibles : {item.places_dispo}
-            </Text>
-            <Text style={styles.trajetInfo}>
-              Prix : {item.prix} DT / place
-            </Text>
-            {item.description ? (
-              <Text style={styles.trajetDesc}>
-                {item.description}
+            <Text style={styles.trajetInfo}>{item.date_depart}</Text>
+            <View style={styles.rowInfo}>
+              <Text style={styles.trajetInfo}>
+                {item.places_dispo} place(s) · {item.prix} TND
               </Text>
-            ) : null}
+            </View>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => setTrajetChoisi(item)}
+            >
+              <Text style={styles.buttonText}>Voir détails</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      />
+
+      {/* Modal détail trajet */}
+      <Modal visible={trajetChoisi != null} transparent animationType="slide">
+        <View style={styles.fond}>
+          <View style={styles.popup}>
+
+            {/* Titre */}
+            <Text style={styles.titre}>
+              {trajetChoisi?.depart} → {trajetChoisi?.arrivee}
+            </Text>
+
+            {/* Infos */}
+            <Text style={styles.infoLine}>
+              📅 Date : {trajetChoisi?.date_depart}
+            </Text>
+            <Text style={styles.infoLine}>
+              💰 Prix : {trajetChoisi?.prix} TND / place
+            </Text>
+            <Text style={styles.infoLine}>
+              💺 Places disponibles : {trajetChoisi?.places_dispo}
+            </Text>
+            <Text style={styles.infoLine}>
+              📝 Description : {trajetChoisi?.description ?? 'Aucune'}
+            </Text>
 
             {/* Bouton Réserver */}
             <TouchableOpacity
               style={[
-                styles.btnReserver,
-                item.places_dispo === 0 && styles.btnReserverDisabled
+                styles.boutonReserver,
+                trajetChoisi?.places_dispo === 0 && styles.boutonReserverDisabled
               ]}
-              disabled={item.places_dispo === 0}
-              onPress={() => router.push({
-                pathname: '/reservation',
-                params: { trajet: JSON.stringify(item) }
-              })}
+              disabled={trajetChoisi?.places_dispo === 0}
+              onPress={allerAuFormulaire}
             >
-              <Text style={styles.btnReserverText}>
-                {item.places_dispo === 0
+              <Text style={styles.buttonText}>
+                {trajetChoisi?.places_dispo === 0
                   ? 'Complet'
                   : 'Réserver une place'
                 }
               </Text>
             </TouchableOpacity>
 
+            {/* Bouton Fermer */}
+            <TouchableOpacity
+              style={styles.boutonFermer}
+              onPress={() => setTrajetChoisi(null)}
+            >
+              <Text style={styles.buttonText}>Fermer</Text>
+            </TouchableOpacity>
+
           </View>
-        )}
-      />
+        </View>
+      </Modal>
 
     </View>
   );
@@ -97,69 +120,79 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f5f5f5'
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 60,
-    marginBottom: 16,
+    marginTop: 60
   },
   titre: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '600'
   },
-  btnAjouter: {
+  button: {
     backgroundColor: '#4f46e5',
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: 8,
+    borderRadius: 8
   },
-  btnAjouterText: {
+  buttonText: {
     color: '#fff',
     fontSize: 15,
     fontWeight: '600',
+    textAlign: 'center'
   },
-  card: {
+  carte: {
     backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 0.5,
-    borderColor: '#e5e7eb',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 10,
+    gap: 5
   },
   trajetTitre: {
     fontSize: 17,
-    fontWeight: '700',
-    color: '#1e1e1e',
-    marginBottom: 8,
+    fontWeight: 'bold'
   },
   trajetInfo: {
     fontSize: 13,
-    color: '#555',
-    marginBottom: 4,
+    color: '#666'
   },
-  trajetDesc: {
-    fontSize: 12,
-    color: '#888',
-    fontStyle: 'italic',
-    marginTop: 4,
-    marginBottom: 4,
+  rowInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between'
   },
-  btnReserver: {
+  fond: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    padding: 20
+  },
+  popup: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 20,
+    gap: 8
+  },
+  infoLine: {
+    fontSize: 14,
+    color: '#444',
+    paddingVertical: 2
+  },
+  boutonReserver: {
     backgroundColor: '#4f46e5',
-    paddingVertical: 12,
+    paddingVertical: 14,
     borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 12,
+    marginTop: 8
   },
-  btnReserverDisabled: {
-    backgroundColor: '#d1d5db',
+  boutonReserverDisabled: {
+    backgroundColor: '#d1d5db'
   },
-  btnReserverText: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: 15,
+  boutonFermer: {
+    backgroundColor: '#ef4444',
+    paddingVertical: 10,
+    borderRadius: 8,
+    marginTop: 4
   },
 });
