@@ -1,16 +1,21 @@
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useLocalSearchParams, router } from 'expo-router';
 import { useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert, ScrollView,
-    StyleSheet,
-    Text, TextInput, TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
-import { supabase } from '../../lib/supabase';
+import { supabase } from '@/lib/supabase';
 
-export default function ReservationScreen({ route, navigation }: { route: any; navigation: NativeStackNavigationProp<any> }) {
-  const { trajet } = route.params;
+export default function ReservationScreen() {
+  // Récupérer le trajet passé depuis trajets.tsx
+  const { trajet: trajetParam } = useLocalSearchParams();
+  const trajet = JSON.parse(trajetParam as string);
 
   const [nom, setNom] = useState('');
   const [telephone, setTelephone] = useState('');
@@ -47,11 +52,12 @@ export default function ReservationScreen({ route, navigation }: { route: any; n
     setLoading(true);
 
     try {
-      // 1. Récupérer l'utilisateur connecté (passager)
+      // 1. Récupérer l'utilisateur connecté
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
         Alert.alert('Erreur', 'Vous devez être connecté pour réserver.');
+        router.replace('/(auth)/login');
         return;
       }
 
@@ -91,11 +97,11 @@ export default function ReservationScreen({ route, navigation }: { route: any; n
 
       if (errMaj) throw errMaj;
 
-      // 5. Envoyer une notification au conducteur
+      // 5. Envoyer notification au conducteur
       const { error: errNotif } = await supabase
         .from('notifications')
         .insert({
-          destinataire_id: trajet.conducteur_id,
+          destinataire_id: trajet.user_id, // user_id = conducteur dans votre table trajets
           titre: 'Nouvelle demande de réservation',
           corps: `${nom} veut réserver ${nbPlaces} place(s) sur votre trajet ${trajet.depart} → ${trajet.arrivee}.`,
           trajet_id: trajet.id,
@@ -104,15 +110,18 @@ export default function ReservationScreen({ route, navigation }: { route: any; n
 
       if (errNotif) throw errNotif;
 
-      // 6. Succès
+      // 6. Succès → retour à la liste des trajets
       Alert.alert(
         'Demande envoyée !',
         'Le conducteur a été notifié. Vous recevrez une confirmation bientôt.',
-        [{ text: 'OK', onPress: () => navigation.goBack() }]
+        [{ text: 'OK', onPress: () => router.back() }]
       );
 
     } catch (err) {
-      Alert.alert('Erreur', err instanceof Error ? err.message : 'Une erreur est survenue');
+      Alert.alert(
+        'Erreur',
+        err instanceof Error ? err.message : 'Une erreur est survenue'
+      );
     } finally {
       setLoading(false);
     }
@@ -126,11 +135,15 @@ export default function ReservationScreen({ route, navigation }: { route: any; n
         <Text style={styles.trajetTitre}>
           {trajet.depart} → {trajet.arrivee}
         </Text>
-        <Text style={styles.trajetInfo}>Date : {trajet.date_heure}</Text>
+        <Text style={styles.trajetInfo}>
+          Date : {trajet.date_depart}
+        </Text>
         <Text style={styles.trajetInfo}>
           Places disponibles : {trajet.places_dispo}
         </Text>
-        <Text style={styles.trajetInfo}>Prix : {trajet.prix} DT / place</Text>
+        <Text style={styles.trajetInfo}>
+          Prix : {trajet.prix} DT / place
+        </Text>
       </View>
 
       {/* Formulaire */}
@@ -194,9 +207,10 @@ export default function ReservationScreen({ route, navigation }: { route: any; n
         }
       </TouchableOpacity>
 
+      {/* Bouton annuler */}
       <TouchableOpacity
         style={styles.btnAnnuler}
-        onPress={() => navigation.goBack()}
+        onPress={() => router.back()}
         disabled={loading}
       >
         <Text style={styles.btnAnnulerText}>Annuler</Text>
@@ -216,7 +230,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#4F46E5',
     borderRadius: 12,
     padding: 16,
-    marginBottom: 20
+    marginBottom: 20,
+    marginTop: 20
   },
   trajetTitre: {
     color: '#fff',
