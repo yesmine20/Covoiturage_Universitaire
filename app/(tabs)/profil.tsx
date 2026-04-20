@@ -21,22 +21,11 @@ export default function ProfilScreen() {
   };
 
   const seDeconnecter = async () => {
-    Alert.alert(
-      'Déconnexion',
-      'Voulez-vous vraiment vous déconnecter ?',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Déconnecter',
-          style: 'destructive',
-          onPress: async () => {
-            await supabase.auth.signOut();
-            router.replace('/(auth)/login');
-          }
-        }
-      ]
-    );
-  };
+  const confirmed = window.confirm('Voulez-vous vraiment vous déconnecter ?')
+  if (confirmed) {
+    await supabase.auth.signOut()
+  }
+  }
 
   if (loading) {
     return (
