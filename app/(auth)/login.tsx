@@ -1,46 +1,73 @@
-import { useState } from 'react'
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native'
-import { supabase } from '../../lib/supabase'
-import { useRouter } from 'expo-router'
+import { useRouter } from "expo-router";
+import { useState } from "react";
+import {
+  Alert,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { supabase } from "../../lib/supabase";
 
 export default function Login() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const router = useRouter()
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   async function signIn() {
-    setLoading(true)
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    setLoading(true);
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
     if (error) {
-      Alert.alert('Erreur', error.message)
-      setLoading(false)
-      return
+      Alert.alert("Erreur", error.message);
+      setLoading(false);
+      return;
     }
     if (!data.user.email_confirmed_at) {
-      await supabase.auth.signOut()
-      Alert.alert('Email non vérifié', 'Veuillez vérifier votre email avant de vous connecter.')
-      setLoading(false)
-      return
+      await supabase.auth.signOut();
+      Alert.alert(
+        "Email non vérifié",
+        "Veuillez vérifier votre email avant de vous connecter.",
+      );
+      setLoading(false);
+      return;
     }
-    setLoading(false)
-    router.replace('/trajets')
+    setLoading(false);
+    router.replace("/trajets");
   }
 
-async function motDePasseOublie() {
-  if (!email) {
-    window.alert('Veuillez entrer votre email d\'abord')
-    return
+  async function signInWithGoogle() {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: "http://localhost:8081/trajets",
+      },
+    });
+    if (error) {
+      Alert.alert("Erreur", error.message);
+    }
   }
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: 'http://localhost:8081/(auth)/reset-password',
-  })
-  if (error) {
-    window.alert(error.message)
-  } else {
-    window.alert('Vérifiez votre boîte mail pour réinitialiser votre mot de passe.')
+
+  async function motDePasseOublie() {
+    if (!email) {
+      window.alert("Veuillez entrer votre email d'abord");
+      return;
+    }
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: "http://localhost:8081/(auth)/reset-password",
+    });
+    if (error) {
+      window.alert(error.message);
+    } else {
+      window.alert(
+        "Vérifiez votre boîte mail pour réinitialiser votre mot de passe.",
+      );
+    }
   }
-}
 
   return (
     <View style={styles.container}>
@@ -67,30 +94,91 @@ async function motDePasseOublie() {
         <Text style={styles.forgotLink}>Mot de passe oublié ?</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={signIn} disabled={loading}>
-        <Text style={styles.buttonText}>{loading ? 'Connexion...' : 'Se connecter'}</Text>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={signIn}
+        disabled={loading}
+      >
+        <Text style={styles.buttonText}>
+          {loading ? "Connexion..." : "Se connecter"}
+        </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
-        <Text style={styles.link}>Pas de compte ? S'inscrire</Text>
+      {/* Google Sign In */}
+      <TouchableOpacity style={styles.googleButton} onPress={signInWithGoogle}>
+        <View style={styles.googleButtonInner}>
+          <Text style={styles.googleIcon}>G</Text>
+          <Text style={styles.googleButtonText}>Se connecter avec Google</Text>
+        </View>
       </TouchableOpacity>
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 24, backgroundColor: '#fff' },
-  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 32, textAlign: 'center', color: '#000' },
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    padding: 24,
+    backgroundColor: "#fff",
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    marginBottom: 32,
+    textAlign: "center",
+    color: "#000",
+  },
   input: {
-    borderWidth: 1, borderColor: '#ccc', borderRadius: 8,
-    padding: 12, marginBottom: 8, fontSize: 16,
-    backgroundColor: '#fff', color: '#000'
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+    fontSize: 16,
+    backgroundColor: "#fff",
+    color: "#000",
   },
-  forgotLink: { textAlign: 'right', color: '#2563eb', fontSize: 13, marginBottom: 16 },
+  forgotLink: {
+    textAlign: "right",
+    color: "#2563eb",
+    fontSize: 13,
+    marginBottom: 16,
+  },
   button: {
-    backgroundColor: '#2563eb', borderRadius: 8,
-    padding: 14, alignItems: 'center', marginBottom: 16
+    backgroundColor: "#2563eb",
+    borderRadius: 8,
+    padding: 14,
+    alignItems: "center",
+    marginBottom: 12,
   },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  link: { textAlign: 'center', color: '#2563eb', fontSize: 14 }
-})
+  buttonText: { color: "#fff", fontSize: 16, fontWeight: "600" },
+  googleButton: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    padding: 14,
+    marginBottom: 16,
+    backgroundColor: "#fff",
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  googleButtonInner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+  },
+  googleIcon: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#4285F4",
+  },
+  googleButtonText: {
+    color: "#444",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+});

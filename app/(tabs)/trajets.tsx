@@ -33,7 +33,7 @@ export default function TrajetsScreen() {
   useEffect(() => {
     supabase
       .from("trajets")
-      .select("*")
+      .select("*, profiles!trajets_user_id_profiles_fkey(id, nom, prenom)")
       .then(({ data }) => {
         setTrajets(data ?? []);
         setTrajetsFiltres(data ?? []);
@@ -262,6 +262,19 @@ export default function TrajetsScreen() {
       <Modal visible={trajetChoisi != null} transparent animationType="slide">
         <View style={styles.fond}>
           <View style={styles.popup}>
+            <TouchableOpacity
+              onPress={() =>
+                router.push({
+                  pathname: "/profil/[id]",
+                  params: { id: trajetChoisi?.profiles?.id },
+                })
+              }
+            >
+              <Text style={styles.conducteurLink}>
+                👤 {trajetChoisi?.profiles?.prenom}{" "}
+                {trajetChoisi?.profiles?.nom}
+              </Text>
+            </TouchableOpacity>
             <Text style={styles.titre}>
               {trajetChoisi?.depart} → {trajetChoisi?.arrivee}
             </Text>
@@ -408,4 +421,11 @@ const styles = StyleSheet.create({
     borderColor: "#ddd",
   },
   boutonAnnulerText: { color: "#666", fontSize: 15 },
+  conducteurLink: {
+    fontSize: 14,
+    color: "#4f46e5",
+    fontWeight: "600",
+    paddingVertical: 2,
+    textDecorationLine: "underline",
+  },
 });
