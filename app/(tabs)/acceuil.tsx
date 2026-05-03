@@ -1,15 +1,13 @@
-import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
-  useWindowDimensions
-} from 'react-native';
+  useWindowDimensions,
+} from "react-native";
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from "@/lib/supabase";
 
 export default function AccueilScreen() {
   const { width } = useWindowDimensions();
@@ -21,7 +19,9 @@ export default function AccueilScreen() {
     let mounted = true;
 
     const syncUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!mounted) return;
       setSessionEmail(user?.email ?? null);
     };
@@ -32,7 +32,7 @@ export default function AccueilScreen() {
       (_event, session) => {
         if (!mounted) return;
         setSessionEmail(session?.user?.email ?? null);
-      }
+      },
     );
 
     return () => {
@@ -45,7 +45,8 @@ export default function AccueilScreen() {
     <View style={styles.screen}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}>
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.glowTopRight} />
         <View style={styles.glowBottomLeft} />
 
@@ -58,18 +59,19 @@ export default function AccueilScreen() {
                 </View>
 
                 <View>
-                  <Text style={styles.brandTitle}>Covoiturage Universitaire</Text>
+                  <Text style={styles.brandTitle}>
+                    Covoiturage Universitaire
+                  </Text>
                   <Text style={styles.brandSubtitle}>
                     Simple, fiable, pensé pour le campus
                   </Text>
                 </View>
               </View>
 
-              <Text style={[
-                styles.heroTitle,
-                isCompact && styles.heroTitleCompact
-              ]}>
-                Le covoiturage étudiant,{'\n'}
+              <Text
+                style={[styles.heroTitle, isCompact && styles.heroTitleCompact]}
+              >
+                Le covoiturage étudiant,{"\n"}
                 simple et
                 <Text style={styles.heroTitleAccent}> sans friction.</Text>
               </Text>
@@ -78,22 +80,6 @@ export default function AccueilScreen() {
                 Trouvez vos trajets, réservez en quelques clics et voyagez en
                 toute confiance avec la communauté universitaire.
               </Text>
-
-              <View style={[styles.ctaRow, isCompact && styles.ctaRowStack]}>
-                <TouchableOpacity
-                  style={[styles.primaryButton, isCompact && styles.fullButton]}
-                  onPress={() => router.push(
-                    sessionEmail ? '/trajets' : '/(auth)/login'
-                  )}>
-                  <Text style={styles.primaryButtonText}>Se connecter</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.secondaryButton, isCompact && styles.fullButton]}
-                  onPress={() => router.push('/(auth)/register')}>
-                  <Text style={styles.secondaryButtonText}>Créer un compte</Text>
-                </TouchableOpacity>
-              </View>
             </View>
 
             <View style={styles.mapShell}>
@@ -135,321 +121,279 @@ export default function AccueilScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#f6f9ff'
+    backgroundColor: "#f6f9ff",
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: 120
+    paddingBottom: 120,
   },
   container: {
-    width: '100%',
+    width: "100%",
     maxWidth: 1280,
-    alignSelf: 'center',
+    alignSelf: "center",
     paddingHorizontal: 26,
-    paddingTop: 34
+    paddingTop: 34,
   },
   glowTopRight: {
-    position: 'absolute',
+    position: "absolute",
     top: -90,
     right: -80,
     width: 300,
     height: 300,
     borderRadius: 150,
-    backgroundColor: '#dce9ff'
+    backgroundColor: "#dce9ff",
   },
   glowBottomLeft: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 40,
     left: -100,
     width: 240,
     height: 240,
     borderRadius: 120,
-    backgroundColor: '#e8f0ff'
+    backgroundColor: "#e8f0ff",
   },
   heroRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     gap: 28,
-    minHeight: 720
+    minHeight: 720,
   },
   heroRowStack: {
-    flexDirection: 'column',
-    alignItems: 'stretch',
-    minHeight: undefined
+    flexDirection: "column",
+    alignItems: "stretch",
+    minHeight: undefined,
   },
   heroCopy: {
     flex: 1,
-    justifyContent: 'center',
-    paddingTop: 8
+    justifyContent: "center",
+    paddingTop: 8,
   },
   heroCopyWide: {
-    maxWidth: 620
+    maxWidth: 620,
   },
   brandRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 14,
-    marginBottom: 26
+    marginBottom: 26,
   },
   brandBadge: {
     width: 52,
     height: 52,
     borderRadius: 16,
-    backgroundColor: '#2f80ff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#2f80ff',
+    backgroundColor: "#2f80ff",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#2f80ff",
     shadowOpacity: 0.28,
     shadowRadius: 16,
     shadowOffset: { width: 0, height: 8 },
-    elevation: 6
+    elevation: 6,
   },
   brandBadgeText: {
-    color: '#ffffff',
+    color: "#ffffff",
     fontSize: 18,
-    fontWeight: '800'
+    fontWeight: "800",
   },
   brandTitle: {
-    color: '#1f2430',
+    color: "#1f2430",
     fontSize: 20,
-    fontWeight: '800'
+    fontWeight: "800",
   },
   brandSubtitle: {
-    color: '#6f7e95',
+    color: "#6f7e95",
     fontSize: 13,
-    marginTop: 3
+    marginTop: 3,
   },
   heroTitle: {
-    color: '#1f2430',
+    color: "#1f2430",
     fontSize: 58,
     lineHeight: 66,
-    fontWeight: '900',
+    fontWeight: "900",
     letterSpacing: -1.6,
-    marginBottom: 18
+    marginBottom: 18,
   },
   heroTitleCompact: {
     fontSize: 40,
-    lineHeight: 46
+    lineHeight: 46,
   },
   heroTitleAccent: {
-    color: '#2f80ff'
+    color: "#2f80ff",
   },
   heroText: {
-    color: '#66758a',
+    color: "#66758a",
     fontSize: 18,
     lineHeight: 30,
     maxWidth: 520,
-    marginBottom: 28
-  },
-  ctaRow: {
-    flexDirection: 'row',
-    gap: 16,
-    flexWrap: 'wrap'
-  },
-  ctaRowStack: {
-    flexDirection: 'column'
-  },
-  fullButton: {
-    width: '100%'
-  },
-  primaryButton: {
-    minHeight: 56,
-    paddingHorizontal: 26,
-    borderRadius: 16,
-    backgroundColor: '#2f80ff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#2f80ff',
-    shadowOpacity: 0.24,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 5
-  },
-  primaryButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '800'
-  },
-  secondaryButton: {
-    minHeight: 56,
-    paddingHorizontal: 26,
-    borderRadius: 16,
-    backgroundColor: '#edf4ff',
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  secondaryButtonText: {
-    color: '#2f80ff',
-    fontSize: 16,
-    fontWeight: '800'
+    marginBottom: 28,
   },
   mapShell: {
     flex: 1,
     minHeight: 620,
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     borderRadius: 30,
     padding: 18,
     borderWidth: 1,
-    borderColor: '#edf1f7',
-    shadowColor: '#29507c',
+    borderColor: "#edf1f7",
+    shadowColor: "#29507c",
     shadowOpacity: 0.08,
     shadowRadius: 28,
     shadowOffset: { width: 0, height: 14 },
-    elevation: 5
+    elevation: 5,
   },
   mapCard: {
     flex: 1,
     borderRadius: 26,
-    backgroundColor: '#f1f4f9',
-    overflow: 'hidden',
-    position: 'relative'
+    backgroundColor: "#f1f4f9",
+    overflow: "hidden",
+    position: "relative",
   },
   mapRoadHorizontalOne: {
-    position: 'absolute',
+    position: "absolute",
     top: 54,
     left: -10,
     width: 520,
     height: 9,
     borderRadius: 8,
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    transform: [{ rotate: '15deg' }]
+    backgroundColor: "rgba(255,255,255,0.95)",
+    transform: [{ rotate: "15deg" }],
   },
   mapRoadHorizontalTwo: {
-    position: 'absolute',
+    position: "absolute",
     top: 210,
     left: -40,
     width: 520,
     height: 9,
     borderRadius: 8,
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    transform: [{ rotate: '-14deg' }]
+    backgroundColor: "rgba(255,255,255,0.95)",
+    transform: [{ rotate: "-14deg" }],
   },
   mapRoadVerticalOne: {
-    position: 'absolute',
+    position: "absolute",
     top: -20,
     left: 130,
     width: 10,
     height: 700,
     borderRadius: 8,
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    transform: [{ rotate: '12deg' }]
+    backgroundColor: "rgba(255,255,255,0.95)",
+    transform: [{ rotate: "12deg" }],
   },
   mapRoadVerticalTwo: {
-    position: 'absolute',
+    position: "absolute",
     top: -40,
     right: 96,
     width: 10,
     height: 740,
     borderRadius: 8,
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    transform: [{ rotate: '-8deg' }]
+    backgroundColor: "rgba(255,255,255,0.95)",
+    transform: [{ rotate: "-8deg" }],
   },
   mapRoadTiltOne: {
-    position: 'absolute',
+    position: "absolute",
     top: 90,
     right: 4,
     width: 290,
     height: 9,
     borderRadius: 8,
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    transform: [{ rotate: '58deg' }]
+    backgroundColor: "rgba(255,255,255,0.95)",
+    transform: [{ rotate: "58deg" }],
   },
   mapRoadTiltTwo: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 96,
     left: 28,
     width: 240,
     height: 9,
     borderRadius: 8,
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    transform: [{ rotate: '-48deg' }]
+    backgroundColor: "rgba(255,255,255,0.95)",
+    transform: [{ rotate: "-48deg" }],
   },
   routeSegment: {
-    position: 'absolute',
+    position: "absolute",
     height: 8,
     borderRadius: 8,
-    backgroundColor: '#2f80ff'
+    backgroundColor: "#2f80ff",
   },
   routeSegmentOne: {
     top: 92,
     left: 68,
     width: 118,
-    transform: [{ rotate: '42deg' }]
+    transform: [{ rotate: "42deg" }],
   },
   routeSegmentTwo: {
     top: 170,
     left: 156,
     width: 90,
-    transform: [{ rotate: '18deg' }]
+    transform: [{ rotate: "18deg" }],
   },
   routeSegmentThree: {
     top: 238,
     left: 214,
     width: 110,
-    transform: [{ rotate: '78deg' }]
+    transform: [{ rotate: "78deg" }],
   },
   routeSegmentFour: {
     top: 336,
     left: 292,
     width: 106,
-    transform: [{ rotate: '-12deg' }]
+    transform: [{ rotate: "-12deg" }],
   },
   routeSegmentFive: {
     top: 432,
     left: 384,
     width: 102,
-    transform: [{ rotate: '56deg' }]
+    transform: [{ rotate: "56deg" }],
   },
   pin: {
-    position: 'absolute',
+    position: "absolute",
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#5c95ff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#2f80ff',
+    backgroundColor: "#5c95ff",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#2f80ff",
     shadowOpacity: 0.2,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 6 },
-    elevation: 4
+    elevation: 4,
   },
   pinGlyph: {
-    fontSize: 20
+    fontSize: 20,
   },
   pinStart: {
     top: 24,
-    left: 34
+    left: 34,
   },
   pinEnd: {
     right: 38,
-    bottom: 34
+    bottom: 34,
   },
   mapBubble: {
-    position: 'absolute',
+    position: "absolute",
     top: 118,
     right: 28,
     minWidth: 150,
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     borderRadius: 18,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    shadowColor: '#18355d',
+    shadowColor: "#18355d",
     shadowOpacity: 0.08,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 6 },
-    elevation: 3
+    elevation: 3,
   },
   mapBubblePrice: {
-    color: '#1f2430',
+    color: "#1f2430",
     fontSize: 13,
-    fontWeight: '800',
-    marginBottom: 6
+    fontWeight: "800",
+    marginBottom: 6,
   },
   mapBubbleMeta: {
-    color: '#66758a',
+    color: "#66758a",
     fontSize: 12,
-    fontWeight: '600'
-  }
+    fontWeight: "600",
+  },
 });
