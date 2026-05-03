@@ -3,23 +3,44 @@ import React from 'react';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
     <Tabs
+      initialRouteName="acceuil"
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: '#2f80ff',
+        tabBarInactiveTintColor: '#8a96a8',
         headerShown: false,
         tabBarButton: HapticTab,
+        tabBarStyle: {
+          height: 78,
+          backgroundColor: '#ffffff',
+          borderTopWidth: 0,
+          shadowColor: '#233a5f',
+          shadowOpacity: 0.08,
+          shadowRadius: 18,
+          shadowOffset: { width: 0, height: -6 },
+          elevation: 10,
+          paddingTop: 8,
+          paddingBottom: 10,
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '700',
+        },
       }}>
 
       {/* Accueil */}
       <Tabs.Screen
         name="index"
+        options={{
+          href: null,
+        }}
+      />
+
+      <Tabs.Screen
+        name="acceuil"
         options={{
           title: 'Accueil',
           tabBarIcon: ({ color }) => (
@@ -46,6 +67,16 @@ export default function TabLayout() {
           title: 'Profil',
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="person.fill" color={color} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="notifications"
+        options={{
+          title: 'Notifications',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="bell.fill" color={color} />
           ),
         }}
       />

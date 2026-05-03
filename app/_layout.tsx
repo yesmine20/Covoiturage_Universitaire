@@ -4,6 +4,8 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import Tabs from './(tabs)/acceuil';
+import { IconSymbol } from '@/components/ui/icon-symbol.ios';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -38,6 +40,13 @@ export default function RootLayout() {
             title: 'Inscription' 
           }} 
         />
+        <Stack.Screen
+          name="(auth)/reset-password"
+          options={{
+            headerShown: false,
+            title: 'Nouveau mot de passe'
+          }}
+        />
 
         {/* Détail trajet */}
         <Stack.Screen 
@@ -66,7 +75,6 @@ export default function RootLayout() {
           }} 
         />
       </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+      </ThemeProvider>
   );
 }

@@ -1,33 +1,41 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
+import { Platform } from 'react-native';
 
-const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL!;
-const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
-// Stockage conditionnel selon la plateforme
-let storage: any = undefined;
-
-if (typeof window === 'undefined') {
-  // Mode SSR/Web statique — pas de storage
-  storage = undefined;
-} else {
-  try {
-    storage = require(
-      '@react-native-async-storage/async-storage'
-    ).default;
-  } catch {
-    storage = undefined;
-  }
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error(
+    'Variables Supabase manquantes: EXPO_PUBLIC_SUPABASE_URL et EXPO_PUBLIC_SUPABASE_ANON_KEY.'
+  );
 }
 
+const isBrowser = Platform.OS === 'web' && typeof window !== 'undefined';
+
+const webStorage = isBrowser
+  ? {
+      getItem: async (key: string) => window.localStorage.getItem(key),
+      setItem: async (key: string, value: string) => {
+        window.localStorage.setItem(key, value);
+      },
+      removeItem: async (key: string) => {
+        window.localStorage.removeItem(key);
+      },
+    }
+  : undefined;
+
+const storage = Platform.OS === 'web' ? webStorage : AsyncStorage;
+
 export const supabase = createClient(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY,
+  supabaseUrl,
+  supabaseAnonKey,
   {
     auth: {
-      storage: storage,
+      storage,
       autoRefreshToken: true,
-      persistSession: storage !== undefined,
-      detectSessionInUrl: false,
+      persistSession: Boolean(storage),
+      detectSessionInUrl: isBrowser,
     },
   }
 );

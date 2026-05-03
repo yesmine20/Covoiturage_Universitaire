@@ -1,18 +1,48 @@
+// app/(tabs)/trajets.tsx
 import { supabase } from '@/lib/supabase';
-import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { FlatList, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useLocalSearchParams, router } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
+import {
+  Animated, FlatList, Modal, StyleSheet,
+  Text, TouchableOpacity, View
+} from 'react-native';
 
 export default function TrajetsScreen() {
   const [trajets, setTrajets] = useState<any[]>([]);
   const [trajetChoisi, setTrajetChoisi] = useState<any>(null);
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const toastAnim = useRef(new Animated.Value(0)).current;
+
+  // Récupérer le toast passé depuis reservation/index.tsx
+  const { toast } = useLocalSearchParams();
 
   useEffect(() => {
-    supabase.from('trajets').select('*').then(({ data }) => setTrajets(data ?? []));
+    supabase
+      .from('trajets')
+      .select('*')
+      .then(({ data }) => setTrajets(data ?? []));
   }, []);
 
+  // Afficher le toast si paramètre reçu
+  useEffect(() => {
+    if (toast) {
+      setToastMessage(toast as string);
+      setToastVisible(true);
+      Animated.sequence([
+        Animated.timing(toastAnim, {
+          toValue: 1, duration: 300, useNativeDriver: true
+        }),
+        Animated.delay(2500),
+        Animated.timing(toastAnim, {
+          toValue: 0, duration: 300, useNativeDriver: true
+        })
+      ]).start(() => setToastVisible(false));
+    }
+  }, [toast]);
+
   const allerAuFormulaire = () => {
-    setTrajetChoisi(null); // fermer le modal
+    setTrajetChoisi(null);
     router.push({
       pathname: '/reservation',
       params: { trajet: JSON.stringify(trajetChoisi) }
@@ -22,13 +52,30 @@ export default function TrajetsScreen() {
   return (
     <View style={styles.container}>
 
+      {/* Toast notification */}
+      {toastVisible && (
+        <Animated.View style={[
+          styles.toast,
+          {
+            opacity: toastAnim,
+            transform: [{
+              translateY: toastAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [-20, 0]
+              })
+            }]
+          }
+        ]}>
+          <Text style={styles.toastText}>✓ {toastMessage}</Text>
+        </Animated.View>
+      )}
+
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.titre}>Trajets disponibles</Text>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => router.push('/trajet/modal')}
-        >
+          onPress={() => router.push('/trajet/modal')}>
           <Text style={styles.buttonText}>+ Ajouter</Text>
         </TouchableOpacity>
       </View>
@@ -51,8 +98,7 @@ export default function TrajetsScreen() {
             </View>
             <TouchableOpacity
               style={styles.button}
-              onPress={() => setTrajetChoisi(item)}
-            >
+              onPress={() => setTrajetChoisi(item)}>
               <Text style={styles.buttonText}>Voir détails</Text>
             </TouchableOpacity>
           </View>
@@ -60,16 +106,16 @@ export default function TrajetsScreen() {
       />
 
       {/* Modal détail trajet */}
-      <Modal visible={trajetChoisi != null} transparent animationType="slide">
+      <Modal
+        visible={trajetChoisi != null}
+        transparent
+        animationType="slide">
         <View style={styles.fond}>
           <View style={styles.popup}>
 
-            {/* Titre */}
             <Text style={styles.titre}>
               {trajetChoisi?.depart} → {trajetChoisi?.arrivee}
             </Text>
-
-            {/* Infos */}
             <Text style={styles.infoLine}>
               📅 Date : {trajetChoisi?.date_depart}
             </Text>
@@ -87,24 +133,22 @@ export default function TrajetsScreen() {
             <TouchableOpacity
               style={[
                 styles.boutonReserver,
-                trajetChoisi?.places_dispo === 0 && styles.boutonReserverDisabled
+                trajetChoisi?.places_dispo === 0 &&
+                  styles.boutonReserverDisabled
               ]}
               disabled={trajetChoisi?.places_dispo === 0}
-              onPress={allerAuFormulaire}
-            >
+              onPress={allerAuFormulaire}>
               <Text style={styles.buttonText}>
                 {trajetChoisi?.places_dispo === 0
                   ? 'Complet'
-                  : 'Réserver une place'
-                }
+                  : 'Réserver une place'}
               </Text>
             </TouchableOpacity>
 
             {/* Bouton Fermer */}
             <TouchableOpacity
               style={styles.boutonFermer}
-              onPress={() => setTrajetChoisi(null)}
-            >
+              onPress={() => setTrajetChoisi(null)}>
               <Text style={styles.buttonText}>Fermer</Text>
             </TouchableOpacity>
 
@@ -117,82 +161,56 @@ export default function TrajetsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: '#f5f5f5'
+  container: { flex: 1, padding: 16, backgroundColor: '#f5f5f5' },
+  toast: {
+    position: 'absolute',
+    top: 55, left: 16, right: 16,
+    backgroundColor: '#1D9E75',
+    padding: 14, borderRadius: 12,
+    zIndex: 999
+  },
+  toastText: {
+    color: '#fff', fontWeight: '600',
+    fontSize: 14, textAlign: 'center'
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 60
+    flexDirection: 'row', justifyContent: 'space-between',
+    alignItems: 'center', marginTop: 60
   },
-  titre: {
-    fontSize: 22,
-    fontWeight: '600'
-  },
+  titre: { fontSize: 22, fontWeight: '600' },
   button: {
     backgroundColor: '#4f46e5',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8
+    paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8
   },
   buttonText: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: '600',
-    textAlign: 'center'
+    color: '#fff', fontSize: 15,
+    fontWeight: '600', textAlign: 'center'
   },
   carte: {
-    backgroundColor: '#fff',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 10,
-    gap: 5
+    backgroundColor: '#fff', padding: 15,
+    borderRadius: 10, marginBottom: 10, gap: 5
   },
-  trajetTitre: {
-    fontSize: 17,
-    fontWeight: 'bold'
-  },
-  trajetInfo: {
-    fontSize: 13,
-    color: '#666'
-  },
-  rowInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between'
-  },
+  trajetTitre: { fontSize: 17, fontWeight: 'bold' },
+  trajetInfo: { fontSize: 13, color: '#666' },
+  rowInfo: { flexDirection: 'row', justifyContent: 'space-between' },
   fond: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    padding: 20
+    flex: 1, backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center', padding: 20
   },
   popup: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 20,
-    gap: 8
+    backgroundColor: '#fff', borderRadius: 12,
+    padding: 20, gap: 8
   },
-  infoLine: {
-    fontSize: 14,
-    color: '#444',
-    paddingVertical: 2
-  },
+  infoLine: { fontSize: 14, color: '#444', paddingVertical: 2 },
   boutonReserver: {
     backgroundColor: '#4f46e5',
-    paddingVertical: 14,
-    borderRadius: 10,
-    marginTop: 8
+    paddingVertical: 14, borderRadius: 10, marginTop: 8,
+    alignItems: 'center'
   },
-  boutonReserverDisabled: {
-    backgroundColor: '#d1d5db'
-  },
+  boutonReserverDisabled: { backgroundColor: '#d1d5db' },
   boutonFermer: {
     backgroundColor: '#ef4444',
-    paddingVertical: 10,
-    borderRadius: 8,
-    marginTop: 4
-  },
+    paddingVertical: 10, borderRadius: 8,
+    marginTop: 4, alignItems: 'center'
+  }
 });
