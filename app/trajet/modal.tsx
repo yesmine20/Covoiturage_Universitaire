@@ -3,6 +3,8 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Platfo
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { trajetRepository } from '../repositories/trajetRepository';
+import { CreerTrajetDTO } from '../models/Trajet';
 
 export default function AjouterTrajetModal() {
   const [form, setForm] = useState({
@@ -13,10 +15,70 @@ export default function AjouterTrajetModal() {
     prix: '',
     description: '',
   });
+  const [errors, setErrors] = useState({
+  depart: '',
+  arrivee: '',
+  date_depart: '',
+  places_dispo: '',
+  prix: '',
+});
+
   const [loading, setLoading] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
 
+  const validerFormulaire = () => {
+  let valid = true;
+  const newErrors = {
+    depart: '',
+    arrivee: '',
+    date_depart: '',
+    places_dispo: '',
+    prix: '',
+  };
+
+  if (!form.depart.trim()) {
+    newErrors.depart = 'La ville de départ est obligatoire';
+    valid = false;
+  }
+
+  if (!form.arrivee.trim()) {
+    newErrors.arrivee = "La ville d'arrivée est obligatoire";
+    valid = false;
+  }
+
+  if (form.depart.trim() === form.arrivee.trim()) {
+    newErrors.arrivee = "L'arrivée doit être différente du départ";
+    valid = false;
+  }
+
+  if (!form.date_depart) {
+    newErrors.date_depart = 'La date est obligatoire';
+    valid = false;
+  } else {
+    const dateChoisie = new Date(form.date_depart);
+    const maintenant = new Date();
+    if (dateChoisie <= maintenant) {
+      newErrors.date_depart = 'La date doit être dans le futur';
+      valid = false;
+    }
+  }
+
+  if (!form.places_dispo || parseInt(form.places_dispo) < 1) {
+    newErrors.places_dispo = 'Le nombre de places doit être au moins 1';
+    valid = false;
+  }
+
+  if (!form.prix || parseFloat(form.prix) <= 0) {
+    newErrors.prix = 'Le prix doit être supérieur à 0';
+    valid = false;
+  }
+
+  setErrors(newErrors);
+  return valid;
+};
+
   const handleSubmit = async () => {
+    if (!validerFormulaire()) return; 
     if (!form.depart || !form.arrivee || !form.date_depart || !form.places_dispo || !form.prix) {
       alert('Veuillez remplir tous les champs obligatoires');
       return;
@@ -38,15 +100,36 @@ export default function AjouterTrajetModal() {
 
     const user = signInData.user;
 
-    const { error } = await supabase.from('trajets').insert([{
-      user_id: user.id,
+  //   const { error } = await supabase.from('trajets').insert([{
+  //     user_id: user.id,
+  //     depart: form.depart,
+  //     arrivee: form.arrivee,
+  //     date_depart: form.date_depart,
+  //     places_dispo: parseInt(form.places_dispo),
+  //     prix: parseFloat(form.prix),
+  //     description: form.description || null,
+  //   }]);
+
+  //   setLoading(false);
+
+  //   if (error) {
+  //     alert('Erreur : ' + error.message);
+  //   } else {
+  //     alert('Trajet ajouté avec succès !');
+  //     router.back();
+  //   }
+  // };
+      const trajetData: CreerTrajetDTO = {
+      user_id: signInData.user.id,
       depart: form.depart,
       arrivee: form.arrivee,
       date_depart: form.date_depart,
       places_dispo: parseInt(form.places_dispo),
       prix: parseFloat(form.prix),
-      description: form.description || null,
-    }]);
+      description: form.description || undefined,
+    };
+// Appel du repository — plus de Supabase direct ici !
+    const { error } = await trajetRepository.ajouterTrajet(trajetData);
 
     setLoading(false);
 
@@ -57,7 +140,6 @@ export default function AjouterTrajetModal() {
       router.back();
     }
   };
-
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>Ajouter un trajet</Text>
@@ -69,7 +151,7 @@ export default function AjouterTrajetModal() {
         value={form.depart}
         onChangeText={(val) => setForm({ ...form, depart: val })}
       />
-
+      {errors.depart ? <Text style={styles.errorText}>{errors.depart}</Text> : null}
       <Text style={styles.label}>Ville d'arrivée *</Text>
       <TextInput
         style={styles.input}
@@ -77,7 +159,7 @@ export default function AjouterTrajetModal() {
         value={form.arrivee}
         onChangeText={(val) => setForm({ ...form, arrivee: val })}
       />
-
+      {errors.arrivee ? <Text style={styles.errorText}>{errors.arrivee}</Text> : null}
       <Text style={styles.label}>Date et heure *</Text>
       {Platform.OS === 'web' ? (
         <input
@@ -129,7 +211,7 @@ export default function AjouterTrajetModal() {
         value={form.places_dispo}
         onChangeText={(val) => setForm({ ...form, places_dispo: val })}
       />
-
+      {errors.places_dispo ? <Text style={styles.errorText}>{errors.places_dispo}</Text> : null}
       <Text style={styles.label}>Prix (TND) *</Text>
       <TextInput
         style={styles.input}
@@ -138,7 +220,7 @@ export default function AjouterTrajetModal() {
         value={form.prix}
         onChangeText={(val) => setForm({ ...form, prix: val })}
       />
-
+      {errors.prix ? <Text style={styles.errorText}>{errors.prix}</Text> : null}
       <Text style={styles.label}>Description (optionnel)</Text>
       <TextInput
         style={[styles.input, styles.textarea]}
@@ -163,6 +245,16 @@ export default function AjouterTrajetModal() {
 }
 
 const styles = StyleSheet.create({
+  inputError: {
+  borderColor: '#ef4444',
+  borderWidth: 1.5,
+},
+errorText: {
+  color: '#ef4444',
+  fontSize: 12,
+  marginTop: 4,
+  marginBottom: 4,
+},
   container: {
     flex: 1,
     padding: 20,
@@ -208,4 +300,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-});
+})
