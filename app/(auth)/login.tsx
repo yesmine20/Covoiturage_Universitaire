@@ -11,6 +11,113 @@ import {
 } from "react-native";
 import { supabase } from "../../lib/supabase";
 
+// ─── MapCard (no props needed) ───────────────────────────────────────────────
+const MapCard = () => (
+  <View style={styles.mapShell}>
+    <View style={styles.mapCard}>
+      <View style={styles.mapRoadH1} />
+      <View style={styles.mapRoadH2} />
+      <View style={styles.mapRoadV1} />
+      <View style={styles.mapRoadV2} />
+      <View style={styles.mapRoadT1} />
+      <View style={styles.mapRoadT2} />
+      <View style={[styles.route, styles.route1]} />
+      <View style={[styles.route, styles.route2]} />
+      <View style={[styles.route, styles.route3]} />
+      <View style={[styles.route, styles.route4]} />
+      <View style={[styles.route, styles.route5]} />
+      <View style={[styles.pin, styles.pinStart]}>
+        <Text style={styles.pinGlyph}>📍</Text>
+      </View>
+      <View style={[styles.pin, styles.pinEnd]}>
+        <Text style={styles.pinGlyph}>📍</Text>
+      </View>
+      <View style={styles.mapBubble}>
+        <Text style={styles.mapBubblePrice}>2,000 TND</Text>
+        <Text style={styles.mapBubbleMeta}>2 places disponibles</Text>
+      </View>
+    </View>
+
+    <View style={styles.brandOverlay}>
+      <View style={styles.brandBadge}>
+        <Text style={styles.brandBadgeText}>CU</Text>
+      </View>
+      <View>
+        <Text style={styles.brandTitle}>Covoiturage Universitaire</Text>
+        <Text style={styles.brandSubtitle}>
+          Simple, fiable, pensé pour le campus
+        </Text>
+      </View>
+    </View>
+  </View>
+);
+
+// ─── FormCard (receives all needed values as props) ───────────────────────────
+const FormCard = ({
+  email,
+  setEmail,
+  password,
+  setPassword,
+  loading,
+  onSignIn,
+  onSignInWithGoogle,
+  onMotDePasseOublie,
+  onNavigateRegister,
+}) => (
+  <View style={styles.formCard}>
+    <Text style={styles.title}>Connexion</Text>
+
+    <TextInput
+      style={styles.input}
+      placeholder="Email"
+      value={email}
+      onChangeText={setEmail}
+      autoCapitalize="none"
+      keyboardType="email-address"
+    />
+
+    <TextInput
+      style={styles.input}
+      placeholder="Mot de passe"
+      value={password}
+      onChangeText={setPassword}
+      secureTextEntry
+    />
+
+    <TouchableOpacity onPress={onMotDePasseOublie}>
+      <Text style={styles.forgotLink}>Mot de passe oublié ?</Text>
+    </TouchableOpacity>
+
+    <TouchableOpacity
+      style={styles.button}
+      onPress={onSignIn}
+      disabled={loading}
+    >
+      <Text style={styles.buttonText}>
+        {loading ? "Connexion..." : "Se connecter"}
+      </Text>
+    </TouchableOpacity>
+
+    <View style={styles.divider}>
+      <View style={styles.dividerLine} />
+      <Text style={styles.dividerText}>ou</Text>
+      <View style={styles.dividerLine} />
+    </View>
+
+    <TouchableOpacity style={styles.googleButton} onPress={onSignInWithGoogle}>
+      <View style={styles.googleButtonInner}>
+        <Text style={styles.googleIcon}>G</Text>
+        <Text style={styles.googleButtonText}>Se connecter avec Google</Text>
+      </View>
+    </TouchableOpacity>
+
+    <TouchableOpacity onPress={onNavigateRegister}>
+      <Text style={styles.link}>Pas de compte ? S'inscrire</Text>
+    </TouchableOpacity>
+  </View>
+);
+
+// ─── Login screen ─────────────────────────────────────────────────────────────
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -63,100 +170,18 @@ export default function Login() {
       );
   }
 
-  const MapCard = () => (
-    <View style={styles.mapShell}>
-      <View style={styles.mapCard}>
-        <View style={styles.mapRoadH1} />
-        <View style={styles.mapRoadH2} />
-        <View style={styles.mapRoadV1} />
-        <View style={styles.mapRoadV2} />
-        <View style={styles.mapRoadT1} />
-        <View style={styles.mapRoadT2} />
-        <View style={[styles.route, styles.route1]} />
-        <View style={[styles.route, styles.route2]} />
-        <View style={[styles.route, styles.route3]} />
-        <View style={[styles.route, styles.route4]} />
-        <View style={[styles.route, styles.route5]} />
-        <View style={[styles.pin, styles.pinStart]}>
-          <Text style={styles.pinGlyph}>📍</Text>
-        </View>
-        <View style={[styles.pin, styles.pinEnd]}>
-          <Text style={styles.pinGlyph}>📍</Text>
-        </View>
-        <View style={styles.mapBubble}>
-          <Text style={styles.mapBubblePrice}>2,000 TND</Text>
-          <Text style={styles.mapBubbleMeta}>2 places disponibles</Text>
-        </View>
-      </View>
-
-      {/* Brand overlay */}
-      <View style={styles.brandOverlay}>
-        <View style={styles.brandBadge}>
-          <Text style={styles.brandBadgeText}>CU</Text>
-        </View>
-        <View>
-          <Text style={styles.brandTitle}>Covoiturage Universitaire</Text>
-          <Text style={styles.brandSubtitle}>
-            Simple, fiable, pensé pour le campus
-          </Text>
-        </View>
-      </View>
-    </View>
-  );
-
-  const FormCard = () => (
-    <View style={styles.formCard}>
-      <Text style={styles.title}>Connexion</Text>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Mot de passe"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-
-      <TouchableOpacity onPress={motDePasseOublie}>
-        <Text style={styles.forgotLink}>Mot de passe oublié ?</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.button}
-        onPress={signIn}
-        disabled={loading}
-      >
-        <Text style={styles.buttonText}>
-          {loading ? "Connexion..." : "Se connecter"}
-        </Text>
-      </TouchableOpacity>
-
-      <View style={styles.divider}>
-        <View style={styles.dividerLine} />
-        <Text style={styles.dividerText}>ou</Text>
-        <View style={styles.dividerLine} />
-      </View>
-
-      <TouchableOpacity style={styles.googleButton} onPress={signInWithGoogle}>
-        <View style={styles.googleButtonInner}>
-          <Text style={styles.googleIcon}>G</Text>
-          <Text style={styles.googleButtonText}>Se connecter avec Google</Text>
-        </View>
-      </TouchableOpacity>
-
-      <TouchableOpacity onPress={() => router.push("/(auth)/register")}>
-        <Text style={styles.link}>Pas de compte ? S'inscrire</Text>
-      </TouchableOpacity>
-    </View>
-  );
+  // Shared props for FormCard
+  const formProps = {
+    email,
+    setEmail,
+    password,
+    setPassword,
+    loading,
+    onSignIn: signIn,
+    onSignInWithGoogle: signInWithGoogle,
+    onMotDePasseOublie: motDePasseOublie,
+    onNavigateRegister: () => router.push("/(auth)/register"),
+  };
 
   if (isWide) {
     return (
@@ -165,7 +190,7 @@ export default function Login() {
           <MapCard />
         </View>
         <View style={styles.rightPanel}>
-          <FormCard />
+          <FormCard {...formProps} />
         </View>
       </View>
     );
@@ -177,7 +202,7 @@ export default function Login() {
       contentContainerStyle={styles.scrollContent}
     >
       <MapCard />
-      <FormCard />
+      <FormCard {...formProps} />
     </ScrollView>
   );
 }
